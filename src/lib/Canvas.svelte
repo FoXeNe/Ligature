@@ -103,11 +103,11 @@
     display: block;
     touch-action: none;
   }
-  /* Pen and eraser draw their own cursor on the active layer (see buildView). */
+  /* Always a native cursor: the compositor moves it at the display's full rate,
+     while anything drawn by the page trails by a frame. A themed crosshair also
+     has a correct hotspot, unlike a custom image cursor under Wayland scaling. */
   .host[data-cursor='draw'],
-  .host[data-cursor='erase'] {
-    cursor: none;
-  }
+  .host[data-cursor='erase'],
   .host[data-cursor='crosshair'] {
     cursor: crosshair;
   }

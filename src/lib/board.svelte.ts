@@ -273,11 +273,6 @@ export class Board {
     const erasing = g?.kind === 'erase' || (!g && this.ui.tool === 'eraser');
     const at = g?.kind === 'erase' ? g.last : this.pointer;
     if (erasing && at) v.eraser = { x: at[0], y: at[1], r: ERASER_PX / this.cam.z };
-    // The pen cursor is drawn here rather than by the OS: a custom CSS cursor's
-    // hotspot can be misplaced under Wayland scaling, making ink look offset.
-    if (!erasing && this.pointer && (g?.kind === 'pen' || (!g && this.ui.tool === 'pen'))) {
-      v.penDot = { x: this.pointer[0], y: this.pointer[1], r: Math.max(STROKE_SIZE / 2, 2.5 / this.cam.z) };
-    }
     if (this.ui.picking) {
       v.picked = this.ui.picking.map((id) => m.strokes.get(id)).filter((s): s is StrokeRec => !!s);
     }
@@ -429,7 +424,7 @@ export class Board {
 
     if (!g) {
       this.updateHover(sx, sy, wx, wy);
-      if (this.ui.tool === 'eraser' || this.ui.tool === 'pen') this.invalidateActive();
+      if (this.ui.tool === 'eraser') this.invalidateActive();
       return;
     }
 
