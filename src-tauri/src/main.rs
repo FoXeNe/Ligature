@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 #[cfg(target_os = "linux")]
-mod canvas_gpu;
+mod webkit_tune;
 #[cfg(target_os = "linux")]
 mod pinch;
 mod store;
@@ -111,7 +111,7 @@ fn main() {
         .setup(|_app| {
             #[cfg(target_os = "linux")]
             if let Some(window) = _app.get_webview_window("main") {
-                canvas_gpu::enable(&window)?;
+                webkit_tune::apply(&window)?;
                 pinch::install(&window)?;
             }
             Ok(())
