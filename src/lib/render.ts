@@ -373,6 +373,8 @@ export interface ActiveView {
   /** Strokes picked by the lasso, waiting for a name. */
   picked?: StrokeRec[];
   eraser?: { x: number; y: number; r: number } | null;
+  /** Pen position, drawn as the cursor so it always sits exactly on the ink. */
+  penDot?: { x: number; y: number; r: number } | null;
 }
 
 /** Transient overlays, redrawn on pointer moves. Cheap: never touches committed ink. */
@@ -453,6 +455,20 @@ export function drawActive(ctx: CanvasRenderingContext2D, cam: Camera, v: Active
     ctx.setLineDash(target ? [] : [6 / z, 5 / z]);
     drawLink(ctx, start, end, z);
     ctx.setLineDash([]);
+  }
+
+  if (v.penDot) {
+    const { x, y, r } = v.penDot;
+    // Ring for visibility, dot the size of the nib at its exact position.
+    ctx.beginPath();
+    ctx.arc(x, y, r + 4 / z, 0, Math.PI * 2);
+    ctx.strokeStyle = theme.muted;
+    ctx.lineWidth = 1 / z;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = theme.ink;
+    ctx.fill();
   }
 
   if (v.eraser) {

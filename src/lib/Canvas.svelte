@@ -21,7 +21,24 @@
 
     const offPinch = onPinch((p) => board.pinch(p.x, p.y, p.factor));
 
+    // Moves and releases are taken from the window: WebKitGTK does not honor
+    // pointer capture for a stylus, so a stroke that leaves the canvas would
+    // otherwise never receive its pointerup and be lost.
+    const onMove = (e: PointerEvent) => {
+      if (board.busy || host.contains(e.target as Node)) board.pointerMove(e);
+    };
+    const onUp = (e: PointerEvent) => {
+      log(e.type, e);
+      board.pointerUp(e);
+    };
+    window.addEventListener('pointermove', onMove, true);
+    window.addEventListener('pointerup', onUp, true);
+    window.addEventListener('pointercancel', onUp, true);
+
     return () => {
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('pointercancel', onUp, true);
       offPinch();
       ro.disconnect();
       host.removeEventListener('wheel', onWheel);
@@ -53,15 +70,6 @@
     board.pointerDown(e);
   }
 
-  function move(e: PointerEvent) {
-    board.pointerMove(e);
-  }
-
-  // A cancel (e.g. WebKit taking over a stylus) still finishes the stroke drawn so far.
-  function up(e: PointerEvent) {
-    log(e.type, e);
-    board.pointerUp(e);
-  }
 </script>
 
 <div class="host" data-cursor={board.ui.cursor} bind:this={host}>
@@ -72,9 +80,6 @@
     bind:this={activeEl}
     class="layer"
     onpointerdown={down}
-    onpointermove={move}
-    onpointerup={up}
-    onpointercancel={up}
     onpointerleave={() => board.pointerLeave()}
     oncontextmenu={(e) => e.preventDefault()}
   ></canvas>
@@ -98,15 +103,13 @@
     display: block;
     touch-action: none;
   }
-  /* A small round pen cursor reads better than a crosshair for handwriting. */
-  .host[data-cursor='draw'] {
-    cursor:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12'%3E%3Ccircle cx='6' cy='6' r='2.5' fill='%23888' stroke='white' stroke-width='1'/%3E%3C/svg%3E")
-        6 6,
-      crosshair;
-  }
+  /* Pen and eraser draw their own cursor on the active layer (see buildView). */
+  .host[data-cursor='draw'],
   .host[data-cursor='erase'] {
     cursor: none;
+  }
+  .host[data-cursor='crosshair'] {
+    cursor: crosshair;
   }
   .host[data-cursor='pointer'] {
     cursor: pointer;

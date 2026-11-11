@@ -24,7 +24,7 @@ import {
 import { drawActive, frameOf, linkGeometry, objectRegion, StaticLayer, syncTheme, type ActiveView } from './render';
 
 export type Tool = 'pen' | 'lasso' | 'arrow' | 'eraser' | 'select';
-export type Cursor = 'draw' | 'erase' | 'default' | 'pointer' | 'move' | 'grab' | 'grabbing';
+export type Cursor = 'draw' | 'erase' | 'crosshair' | 'default' | 'pointer' | 'move' | 'grab' | 'grabbing';
 
 const ERASER_PX = 12;
 const LINK_HIT_PX = 6;
@@ -273,6 +273,11 @@ export class Board {
     const erasing = g?.kind === 'erase' || (!g && this.ui.tool === 'eraser');
     const at = g?.kind === 'erase' ? g.last : this.pointer;
     if (erasing && at) v.eraser = { x: at[0], y: at[1], r: ERASER_PX / this.cam.z };
+    // The pen cursor is drawn here rather than by the OS: a custom CSS cursor's
+    // hotspot can be misplaced under Wayland scaling, making ink look offset.
+    if (!erasing && this.pointer && (g?.kind === 'pen' || (!g && this.ui.tool === 'pen'))) {
+      v.penDot = { x: this.pointer[0], y: this.pointer[1], r: Math.max(STROKE_SIZE / 2, 2.5 / this.cam.z) };
+    }
     if (this.ui.picking) {
       v.picked = this.ui.picking.map((id) => m.strokes.get(id)).filter((s): s is StrokeRec => !!s);
     }
@@ -333,7 +338,7 @@ export class Board {
     else if (g?.kind === 'move') c = 'move';
     else if (this.ui.tool === 'pen') c = 'draw';
     else if (this.ui.tool === 'eraser') c = 'erase';
-    else if (this.ui.tool === 'lasso') c = 'draw';
+    else if (this.ui.tool === 'lasso') c = 'crosshair';
     else if (this.hoverLink || this.ui.hover !== null) c = this.ui.tool === 'select' && !this.hoverLink ? 'move' : 'pointer';
     else c = this.ui.tool === 'select' ? 'grab' : 'default';
     if (this.ui.cursor !== c) this.ui.cursor = c;
@@ -424,7 +429,7 @@ export class Board {
 
     if (!g) {
       this.updateHover(sx, sy, wx, wy);
-      if (this.ui.tool === 'eraser') this.invalidateActive();
+      if (this.ui.tool === 'eraser' || this.ui.tool === 'pen') this.invalidateActive();
       return;
     }
 
