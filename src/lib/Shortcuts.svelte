@@ -1,15 +1,18 @@
 <script lang="ts">
+  import { SWAP_KEY, toolKey } from './keys';
+
   let { onClose }: { onClose: () => void } = $props();
 
   const groups: { title: string; keys: [string, string][] }[] = [
     {
       title: 'Инструменты',
       keys: [
-        ['P', 'Перо'],
-        ['L', 'Лассо: обвести штрихи → объект'],
-        ['A', 'Стрелка: от объекта к объекту'],
-        ['E', 'Ластик (или обратный конец стилуса)'],
-        ['V', 'Выбор: двигать объекты'],
+        [toolKey('pen'), 'Перо'],
+        [toolKey('eraser'), 'Ластик (или обратный конец стилуса)'],
+        [SWAP_KEY.label, 'Переключить перо ↔ ластик'],
+        [toolKey('lasso'), 'Лассо: обвести штрихи → объект'],
+        [toolKey('arrow'), 'Стрелка: от объекта к объекту'],
+        [toolKey('select'), 'Выбор: двигать объекты'],
       ],
     },
     {

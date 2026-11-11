@@ -288,13 +288,21 @@ export class Board {
 
   // ---- tools, keys, messages -------------------------------------------------------
 
+  /** Tool to return to when the eraser is swapped back (X). */
+  private toolBeforeEraser: Tool = 'pen';
+
   setTool(t: Tool) {
+    if (t === 'eraser' && this.ui.tool !== 'eraser') this.toolBeforeEraser = this.ui.tool;
     this.abortGesture();
     this.ui.picking = null;
     this.ui.tool = t;
     this.hoverLink = null;
     this.updateCursor();
     this.invalidateActive();
+  }
+
+  swapPenEraser() {
+    this.setTool(this.ui.tool === 'eraser' ? this.toolBeforeEraser : 'eraser');
   }
 
   setSpace(down: boolean) {

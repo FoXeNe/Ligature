@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Board } from './board.svelte';
   import Icon from './Icon.svelte';
+  import { toolKey } from './keys';
   import { splitTags, type LinkRec, type ObjRec } from './model';
 
   let { board }: { board: Board } = $props();
@@ -175,7 +176,7 @@
         </button>
       {:else}
         <p class="empty">
-          {objects.length ? 'Ничего не подходит' : 'Объектов пока нет. Обведите штрихи лассо (L), чтобы создать объект.'}
+          {objects.length ? 'Ничего не подходит' : `Объектов пока нет. Обведите штрихи лассо (${toolKey('lasso')}), чтобы создать объект.`}
         </p>
       {/each}
     </div>

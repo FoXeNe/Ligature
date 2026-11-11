@@ -1,15 +1,16 @@
 <script lang="ts">
   import type { Board, Tool } from './board.svelte';
   import Icon, { type IconName } from './Icon.svelte';
+  import { toolKey } from './keys';
 
   let { board }: { board: Board } = $props();
 
-  const tools: { id: Tool; label: string; key: string; icon: IconName }[] = [
-    { id: 'pen', label: 'Перо', key: 'P', icon: 'pen' },
-    { id: 'lasso', label: 'Лассо — обвести штрихи и создать объект', key: 'L', icon: 'lasso' },
-    { id: 'arrow', label: 'Стрелка — потянуть от объекта к объекту', key: 'A', icon: 'arrow' },
-    { id: 'eraser', label: 'Ластик', key: 'E', icon: 'eraser' },
-    { id: 'select', label: 'Выбор — двигать объекты', key: 'V', icon: 'cursor' },
+  const tools: { id: Tool; label: string; icon: IconName }[] = [
+    { id: 'pen', label: 'Перо', icon: 'pen' },
+    { id: 'eraser', label: 'Ластик (X — переключить с пером)', icon: 'eraser' },
+    { id: 'lasso', label: 'Лассо — обвести штрихи и создать объект', icon: 'lasso' },
+    { id: 'arrow', label: 'Стрелка — потянуть от объекта к объекту', icon: 'arrow' },
+    { id: 'select', label: 'Выбор — двигать объекты', icon: 'cursor' },
   ];
 </script>
 
@@ -18,13 +19,13 @@
     <button
       class="btn"
       class:active={board.ui.tool === t.id}
-      title="{t.label}  {t.key}"
+      title="{t.label}  {toolKey(t.id)}"
       aria-label={t.label}
       aria-pressed={board.ui.tool === t.id}
       onclick={() => board.setTool(t.id)}
     >
       <Icon name={t.icon} size={19} />
-      <span class="key">{t.key}</span>
+      <span class="key">{toolKey(t.id)}</span>
     </button>
   {/each}
 

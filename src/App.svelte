@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { api, type Board as BoardMeta } from './lib/api';
-  import { Board, type Tool } from './lib/board.svelte';
+  import { Board } from './lib/board.svelte';
   import Canvas from './lib/Canvas.svelte';
   import GraphView from './lib/GraphView.svelte';
   import Icon from './lib/Icon.svelte';
   import NamePopover from './lib/NamePopover.svelte';
+  import { SWAP_KEY, toolKey, TOOL_KEYS } from './lib/keys';
   import ObjectPanel from './lib/ObjectPanel.svelte';
   import QuickOpen from './lib/QuickOpen.svelte';
   import Shortcuts from './lib/Shortcuts.svelte';
@@ -35,8 +36,6 @@
   let renameValue = $state('');
   let confirmDeleteId = $state<number | null>(null);
   let openToken = 0;
-
-  const TOOL_KEYS: Record<string, Tool> = { p: 'pen', l: 'lasso', a: 'arrow', e: 'eraser', v: 'select' };
 
   const currentMeta = $derived(boards.find((b) => b.id === current?.noteId) ?? null);
   const vaultName = $derived(vaultPath.split('/').slice(-2, -1)[0] ?? '');
@@ -155,27 +154,28 @@
     view = view === 'graph' ? 'board' : 'graph';
   }
 
+  // Shortcuts match physical keys (e.code), so they also work in the Russian layout.
   function onKeydown(e: KeyboardEvent) {
     const mod = e.ctrlKey || e.metaKey;
-    const key = e.key.toLowerCase();
+    const code = e.code;
 
-    if (mod && (key === 'k' || key === 'o')) {
+    if (mod && (code === 'KeyK' || code === 'KeyO')) {
       e.preventDefault();
       quickOpen = !quickOpen;
       return;
     }
     if (quickOpen || showHelp) return;
-    if (mod && key === 'g') {
+    if (mod && code === 'KeyG') {
       e.preventDefault();
       toggleGraph();
       return;
     }
-    if (mod && e.key === '[') {
+    if (mod && code === 'BracketLeft') {
       e.preventDefault();
       leftOpen = !leftOpen;
       return;
     }
-    if (mod && e.key === ']') {
+    if (mod && code === 'BracketRight') {
       e.preventDefault();
       rightOpen = !rightOpen;
       return;
@@ -183,39 +183,44 @@
 
     const t = e.target as HTMLElement | null;
     if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
-    if (e.key === '?') {
+    if (e.key === '?' || (e.shiftKey && code === 'Slash')) {
       showHelp = true;
       return;
     }
     if (!current || view !== 'board') return;
     const b = current;
 
-    if (e.code === 'Space') {
+    if (code === 'Space') {
       e.preventDefault();
       b.setSpace(true);
-    } else if (mod && key === 'z') {
+    } else if (mod && code === 'KeyZ') {
       e.preventDefault();
       if (e.shiftKey) b.redo();
       else b.undo();
-    } else if (mod && key === 'y') {
+    } else if (mod && code === 'KeyY') {
       e.preventDefault();
       b.redo();
-    } else if (mod && (e.key === '=' || e.key === '+')) {
+    } else if (mod && (code === 'Equal' || code === 'NumpadAdd')) {
       e.preventDefault();
       b.zoomBy(1.25);
-    } else if (mod && e.key === '-') {
+    } else if (mod && (code === 'Minus' || code === 'NumpadSubtract')) {
       e.preventDefault();
       b.zoomBy(1 / 1.25);
-    } else if (e.shiftKey && e.code === 'Digit1') {
+    } else if (e.shiftKey && code === 'Digit1') {
       b.fitAll();
-    } else if (e.shiftKey && e.code === 'Digit0') {
+    } else if (e.shiftKey && code === 'Digit0') {
       b.zoomReset();
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       b.deleteSelected();
     } else if (e.key === 'Escape') {
       b.escape();
-    } else if (!mod && !e.altKey && TOOL_KEYS[key]) {
-      b.setTool(TOOL_KEYS[key]);
+    } else if (!mod && !e.altKey && !e.shiftKey) {
+      if (code === SWAP_KEY.code) {
+        b.swapPenEraser();
+        return;
+      }
+      const hit = TOOL_KEYS.find((k) => k.code === code);
+      if (hit) b.setTool(hit.tool);
     }
   }
 
@@ -385,8 +390,8 @@
             {#if isEmpty}
               <div class="empty-hint" aria-hidden="true">
                 <p class="hint-title">Чистый лист</p>
-                <p>Рисуйте пером <kbd>P</kbd>. Обведите штрихи лассо <kbd>L</kbd> — получится объект.</p>
-                <p>Соедините объекты стрелкой <kbd>A</kbd>. Все горячие клавиши — <kbd>?</kbd></p>
+                <p>Рисуйте пером <kbd>{toolKey('pen')}</kbd>. Обведите штрихи лассо <kbd>{toolKey('lasso')}</kbd> — получится объект.</p>
+                <p>Соедините объекты стрелкой <kbd>{toolKey('arrow')}</kbd>. Все горячие клавиши — <kbd>?</kbd></p>
               </div>
             {/if}
 
