@@ -2,6 +2,10 @@
 
 Handwritten notes with a link graph. Tauri 2 · Rust · Svelte 5 · Canvas 2D · SQLite (FTS5) · sigma.js.
 
+## Demo
+
+![Handwriting a note and linking it to existing notes on the canvas](docs/demo.gif)
+
 ## Run
 
 ```sh
